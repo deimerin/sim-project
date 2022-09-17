@@ -1,0 +1,270 @@
+---
+title: "ML methods"
+output: html_notebook
+---
+
+```{r}
+# install.packages('caret')
+# install.packages('Metrics')
+
+library(tidyverse)
+library(caret)
+```
+
+```{r}
+df <- read_csv(file = 'Speed Dating Data.csv')
+# summary(df)
+```
+
+```{r}
+
+df_classification <- df %>% select(
+  iid,
+  pid,
+  match,
+  imprace,
+  samerace,
+  int_corr,
+  age_o, 
+  age,
+  pf_o_att, pf_o_sin,	pf_o_int,	pf_o_fun,	pf_o_amb,	pf_o_sha,
+  attr3_1,	sinc3_1,	intel3_1,	fun3_1,	amb3_1, goal)
+
+```
+
+```{r}
+# Preprocessing
+
+# Add partner's goal column
+
+df_classification$index <- 1:nrow(df_classification)
+df_classification$goal2 <- numeric(nrow(df_classification))
+
+for (index in 1:552){
+  ind = df_classification$index[which(df_classification$pid == index)]
+  
+  for (loc in ind) {
+    df_classification$goal2[loc] <- unique(df_classification$goal[which(df_classification$iid == index)])
+
+  }
+  
+}
+
+# Age difference column
+df_classification$agediff <- abs(df_classification$age_o - df_classification$age)
+
+# Factor categorical variables
+df_classification$match <- as.factor(df_classification$match)
+df_classification$imprace <- as.factor(df_classification$imprace)
+df_classification$samerace <- as.factor(df_classification$samerace)
+df_classification$goal <- as.factor(df_classification$goal)
+df_classification$goal2 <- as.factor(df_classification$goal2)
+
+# Remove columns
+df_classification <- df_classification %>% select(-age_o, -age, -index, -iid, -pid)
+
+# Removing NAs
+df_classification <- na.omit(df_classification)
+
+
+glimpse(df_classification)
+
+```
+
+## Classifier
+
+```{r}
+# Data Partition
+i <- createDataPartition(
+  y = df_classification$match,
+  p = 0.8, 
+  list = FALSE)
+```
+
+```{r}
+# Train/Set Split
+training_set <- df_classification[i,]
+test_set <- df_classification[-i,]
+```
+
+```{r}
+nrow(training_set)
+nrow(test_set)
+```
+
+```{r}
+trControl <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+```
+
+```{r}
+class_model <- train(
+  match~., 
+  data=training_set, 
+  method='knn', 
+  metric='Accuracy', 
+  preProcess=c('center', 'scale'),
+  trControl=trControl)
+
+class_model
+```
+
+```{r}
+
+# Evaluate Model
+
+predictions <- predict(class_model, newdata=test_set)
+confusionMatrix(predictions, test_set$match)
+
+
+```
+```{r}
+## Save model
+
+saveRDS(class_model, "./match_class.rds")
+
+# Load model
+
+## best_model <- readRDS("./match_class.rds")
+
+# Predict data
+
+## predict(best_model, data)
+
+```
+
+
+
+## Regressor
+
+```{r}
+
+df_regression <- df %>% select(
+  iid,
+  pid,
+  int_corr, 
+  sports, tvsports,	exercise,	dining,	museums,	art, hiking,
+  gaming,	clubbing,	reading,	tv,	theater,	movies,	concerts,
+  music,	shopping,	yoga)
+
+```
+
+
+```{r}
+
+# Fixing Rows
+df_regression$index <- 1:nrow(df_regression)
+
+df_regression$sports2 <- numeric(nrow(df_regression))
+df_regression$tvsports2 <- numeric(nrow(df_regression))
+df_regression$exercise2 <- numeric(nrow(df_regression))
+df_regression$dining2 <- numeric(nrow(df_regression))
+df_regression$museums2 <- numeric(nrow(df_regression))
+df_regression$art2 <- numeric(nrow(df_regression))
+df_regression$hiking2 <- numeric(nrow(df_regression))
+df_regression$gaming2 <- numeric(nrow(df_regression))
+df_regression$clubbing2 <- numeric(nrow(df_regression))
+df_regression$reading2 <- numeric(nrow(df_regression))
+df_regression$tv2 <- numeric(nrow(df_regression))
+df_regression$theater2 <- numeric(nrow(df_regression))
+df_regression$movies2 <- numeric(nrow(df_regression))
+df_regression$concerts2 <- numeric(nrow(df_regression))
+df_regression$music2 <- numeric(nrow(df_regression))
+df_regression$shopping2 <- numeric(nrow(df_regression))
+df_regression$yoga2 <- numeric(nrow(df_regression))
+
+glimpse(df_regression)
+
+```
+
+```{r}
+# Duplicating interests data
+
+for (index in 1:552){
+  ind = df_regression$index[which(df_regression$pid == index)]
+  
+  for (loc in ind) {
+    df_regression$sports2[loc] <- unique(df_regression$sports[which(df_regression$iid == index)])
+    df_regression$tvsports2[loc] <- unique(df_regression$tvsports[which(df_regression$iid == index)])
+    df_regression$exercise2[loc] <- unique(df_regression$exercise[which(df_regression$iid == index)])
+    df_regression$dining2[loc] <- unique(df_regression$dining[which(df_regression$iid == index)])
+    df_regression$museums2[loc] <- unique(df_regression$museums[which(df_regression$iid == index)])
+    df_regression$art2[loc] <- unique(df_regression$art[which(df_regression$iid == index)])
+    df_regression$hiking2[loc] <- unique(df_regression$hiking[which(df_regression$iid == index)])
+    df_regression$gaming2[loc] <- unique(df_regression$gaming[which(df_regression$iid == index)])
+    df_regression$clubbing2[loc] <- unique(df_regression$clubbing[which(df_regression$iid == index)])
+    df_regression$reading2[loc] <- unique(df_regression$reading[which(df_regression$iid == index)])
+    df_regression$tv2[loc] <- unique(df_regression$tv[which(df_regression$iid == index)])
+    df_regression$theater2[loc] <- unique(df_regression$theater[which(df_regression$iid == index)])
+    df_regression$movies2[loc] <- unique(df_regression$movies[which(df_regression$iid == index)])
+    df_regression$concerts2[loc] <- unique(df_regression$concerts[which(df_regression$iid == index)])
+    df_regression$music2[loc] <- unique(df_regression$music[which(df_regression$iid == index)])
+    df_regression$shopping2[loc] <- unique(df_regression$shopping[which(df_regression$iid == index)])
+    df_regression$yoga2[loc] <- unique(df_regression$yoga[which(df_regression$iid == index)])
+
+  }
+  
+}
+
+glimpse(df_regression)
+
+```
+
+```{r}
+
+df_regression <- na.omit(df_regression)
+df_regression <- df_regression %>% select(-index, -iid, -pid)
+
+glimpse(df_regression)
+
+```
+
+```{r}
+# Data Partition
+i <- createDataPartition(
+  y = df_regression$int_corr,
+  p = 0.8,
+  times = 1,
+  list = FALSE)
+# Train/Set Split
+training_set <- df_regression[i,]
+test_set <- df_regression[-i,]
+```
+
+```{r}
+nrow(training_set)
+nrow(test_set)
+```
+
+```{r}
+trControl <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+```
+
+```{r}
+reg_model <- train(
+  int_corr~., 
+  data=training_set, 
+  method='lm',
+  trControl=trControl)
+
+reg_model
+```
+
+```{r}
+attributes(reg_model)
+
+# Metric
+reg_model$results
+
+```
+```{r}
+## Save model
+saveRDS(reg_model, "./corr_reg.rds")
+
+# Load model
+## best_model <- readRDS("./match_class.rds")
+
+# Predict data
+## predict(best_model, data)
+
+```
+

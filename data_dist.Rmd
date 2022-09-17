@@ -1,0 +1,138 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+
+library(tidyverse)
+library(fitdistrplus)
+library(fitur)
+library(actuar)
+
+```
+
+```{r}
+# Load dataset
+df <- read_csv('Speed Dating Data.csv')
+# Load unique iids
+df <-  df %>% group_by(iid) %>% slice(1)
+
+glimpse(df$iid)
+```
+
+```{r}
+
+# Male/Female Split
+
+dfM <- df[df$gender==1, ] # Male
+dfF <- df[df$gender==0, ] # Female
+
+```
+
+# sports	tvsports	exercise	dining	museums	art	hiking	gaming	clubbing	reading	tv	theater	movies	concerts	music	shopping	yoga
+
+```{r}
+# Fitting Interest
+
+intM <- dfM %>%  dplyr::select(iid, gender, sports,	tvsports,	exercise,	dining,	museums,	art,	hiking,	gaming,	clubbing,	reading,	tv,	theater,	movies,	concerts,	music,	shopping,	yoga)
+
+intF <- dfF %>% dplyr::select(iid, gender, sports,	tvsports,	exercise,	dining,	museums,	art,	hiking,	gaming,	clubbing,	reading,	tv,	theater,	movies,	concerts,	music,	shopping,	yoga)
+
+# Remove NAs
+intM <- na.omit(intM)
+intF <- na.omit(intF)
+
+glimpse(intM)
+glimpse(intF)
+
+```
+
+
+```{r}
+# Fit F
+
+tempvar <- intF$tvsports[intF$tvsports<=10 & intF$tvsports>-1]
+
+# Plot
+descdist(data = tempvar, discrete = T, boot=1000)
+plotdist(tempvar)
+
+# Fit
+plot(fitdist(tempvar, 'binom'))
+plot(fitdist(tempvar, 'chisq'))
+plot(fitdist(tempvar, 'exp'))
+plot(fitdist(tempvar, 'f'))
+plot(fitdist(tempvar, 'gamma'))
+plot(fitdist(tempvar, 'geom'))
+plot(fitdist(tempvar, 'hyper'))
+plot(fitdist(tempvar, 'lnorm'))
+plot(fitdist(tempvar, 'logis'))
+plot(fitdist(tempvar, 'nbinom'))
+plot(fitdist(tempvar, 'norm'))
+plot(fitdist(tempvar, 'pois'))
+plot(fitdist(tempvar, 'unif'))
+plot(fitdist(tempvar, 'weibull'))
+plot(fitdist(tempvar, 'cauchy'))
+plot(fitdist(tempvar, 'wilcox'))
+
+# Estimate Parameters
+
+P1 = fitdist(tempvar, 'unif')
+plot(P1)
+summary(P1)
+
+# Test
+r <- runif(1000, 1, 10)
+hist(r[r<=10 & r>-1])
+
+```
+
+```{r}
+# Fit M
+
+tempvar <- intM$reading[intM$reading<=10]
+
+# Plot
+descdist(data = tempvar, discrete = F, boot=1000)
+
+# Fit
+plot(fitdist(tempvar, 'beta'))
+plot(fitdist(tempvar, 'binom'))
+plot(fitdist(tempvar, 'cauchy'))
+plot(fitdist(tempvar, 'chisq'))
+plot(fitdist(tempvar, 'exp'))
+plot(fitdist(tempvar, 'f'))
+plot(fitdist(tempvar, 'gamma'))
+plot(fitdist(tempvar, 'geom'))
+plot(fitdist(tempvar, 'hyper'))
+plot(fitdist(tempvar, 'lnorm'))
+plot(fitdist(tempvar, 'logis'))
+plot(fitdist(tempvar, 'nbinom'))
+plot(fitdist(tempvar, 'norm'))
+plot(fitdist(tempvar, 'pois'))
+plot(fitdist(tempvar, 'signrank'))
+plot(fitdist(tempvar, 't'))
+plot(fitdist(tempvar, 'unif'))
+plot(fitdist(tempvar, 'weibull'))
+plot(fitdist(tempvar, 'wilcox'))
+
+# Estimate Parameters
+
+P1 = fitdist(tempvar, 'cauchy')
+plot(P1)
+P2 = fitdist(tempvar, 'weibull')
+plot(P2)
+
+summary(P1)
+summary(P2)
+```
+
+
+Female
+- Sports: unif, min = 1, max = 10
+- Gaming: exp, r = 0.3171021
+- Concerts: norm, mean = 7.152416, sd = 2.021033
+- Music: pois, lambda = 8.04461
+- Shopping: norm, mean = 6.486989, sd = 2.430601
+- TvSports: 
+

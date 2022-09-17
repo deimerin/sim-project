@@ -1,0 +1,201 @@
+---
+title: "Proyecto Simulación de citas"
+output: html_document
+date: "2022-09-11"
+---
+#Proyecto de Simulación de una primera cita entre dos personas
+
+##Intregantes:
+###-Deimer Castillo
+###-Rances Rodriguez
+###-Iveth Medina
+
+
+Importamos el Dataset que se utuliza para realizar la implementación
+
+```{r }
+datos<- read.csv('C:\\Users\\Dell\\Downloads\\Speed Dating Data.csv')
+datos
+```
+
+Se eliminan las columnas que no se utilizarán ya que se consideraron innecesarias para el estudio de simulación
+
+```{r }
+library('tidyverse')
+
+datos1<- datos %>% select(-wave, -condtn, -id, -idg, -round, -position, -positin1, -order, -partner, -date, -undergra, -mn_sat, -tuition, -imprelig, -from, -zipcode, -income, -go_out, -career, -career_c, -exphappy, -expnum, -attr4_1, -sinc4_1, -intel4_1, -fun4_1, -amb4_1, -shar4_1, -attr2_1, -sinc2_1, -intel2_1, -fun2_1, -amb2_1, -shar2_1, -attr5_1, -sinc5_1, -intel5_1, -fun5_1, -amb5_1, -dec, -attr, -sinc, -intel, -fun, -amb, -shar, -like, -prob, -met, -match_es, -attr1_s, -sinc1_s, -intel1_s, -fun1_s, -amb1_s, -shar1_s, -attr3_s, -sinc3_s, -intel3_s, -fun3_s, -amb3_s, -satis_2, -length, -numdat_2, -attr7_2, -sinc7_2, -intel7_2, -fun7_2, -amb7_2, -shar7_2, -attr1_2, -sinc1_2, -intel1_2, -fun1_2, -amb1_2, -shar1_2, -attr4_2, -sinc4_2, -intel4_2, -fun4_2, -amb4_2, -shar4_2, -attr2_2, -sinc2_2, -intel2_2, -fun2_2, -amb2_2, -shar2_2, -attr3_2, -sinc3_2, -intel3_2, -fun3_2, -amb3_2, -attr5_2, -sinc5_2, -intel5_2, -fun5_2, -amb5_2, -you_call, -them_cal, -date_3, -numdat_3, -num_in_3, -attr1_3, -sinc1_3, -fun1_3, -intel1_3, -amb1_3, -shar1_3, -attr7_3, -sinc7_3, -intel7_3, -fun7_3, -amb7_3, -shar7_3, -attr4_3, -sinc4_3, -intel4_3, -fun4_3, -amb4_3, -shar4_3, -attr2_3, -sinc2_3, -intel2_3, -fun2_3, -amb2_3, -shar2_3, -attr3_3, -sinc3_3, -intel3_3, -fun3_3, -amb3_3, -attr5_3, -sinc5_3, -intel5_3, -fun5_3, -amb5_3)
+
+datos1
+
+
+```
+Se realiza un ajuste en los datos y se discriminan los datos por género
+
+```{r }
+df <- datos1[!is.na(datos1),]
+
+dm <- df[df$gender==0, ] #mujer 0
+dh <- df[df$gender !=0,] #hombre 1
+
+#t1h <- dh %>% group_by(iid) %>% slice(1)
+#t1m <- dm %>% group_by(iid) %>% slice(1)
+
+#dh0 <- dh[dh$match==0, ] #match 0 no hombre
+#dh1 <- dh[dh$match!=0, ] #match 1 si hombre
+#dm0 <- dm[dm$match ==0,] #match 0 no mujer
+#dm1 <- dm[dm$match !=0, ] #match 1 si mujer
+
+#eliminar los datos NA de las columnas con atributos
+#at_dh0 <- dh0[!is.na(dh0$attr1_1),]
+#si_dh0 <- dh0[!is.na(dh0$sinc1_1),]
+#int_dh0 <- dh0[!is.na(dh0$intel1_1),]
+#fun_dh0 <- dh0[!is.na(dh0$fun1_1),]
+#amb_dh0 <- dh0[!is.na(dh0$amb1_1),]
+#shar_dh0 <- dh0[!is.na(dh0$shar1_1),]
+
+```
+
+
+##Modelo de regresión lineal
+Ahora se implementa el modelo de regresión lineal que se encuentra en el archivo *corr_reg.rds*
+
+```{r }
+#modelo de regresion lineal
+library(caret)
+df_drds <- read_rds("C:\\Users\\Dell\\Documents\\corr_reg.rds")
+df_drds
+```
+
+##Clasificador
+
+```{r }
+library(caret)
+df_match <- read_rds("C:\\Users\\Dell\\Documents\\match_class.rds")
+df_match
+```
+
+
+##Implementación de agentes
+```{r }
+#crear de agentes
+setClass('agent1',
+         slots = c(
+             name= 'character',
+             #iid = 'numeric',
+             age = 'numeric',
+             gender = 'numeric',
+             race = 'numeric',
+             imprace = 'numeric',
+             goal= 'numeric',
+             sports= 'numeric',
+             tvsports='numeric',
+             exercise='numeric',
+             dining='numeric',
+             museums='numeric',
+             art='numeric',
+             hiking='numeric',
+             gaming='numeric',
+             clubbing='numeric',
+             reading='numeric',
+             tv='numeric',
+             theater='numeric',
+             movies='numeric',
+             concerts='numeric',
+             music='numeric',
+             shopping='numeric',
+             yoga='numeric',
+             atractive = 'numeric',
+             sincere= 'numeric',
+             intelligent = 'numeric',
+             fun = 'numeric',
+             ambitious = 'numeric')
+         )
+
+#crear un objeto agente
+readBird <- function(name)
+{
+    d1<- data.frame(df)
+    new('agent1',
+        name = name,
+        #iid =d1$iid,
+        age = d1$age,
+        gender = d1$gender,
+        race = d1$race,
+        imprace = d1$imprace,
+        goal= d1$goal,
+        sports= d1$sports,
+        tvsports= d1$tvsports,
+        exercise= d1$exercise,
+        dining= d1$dining,
+        museums= d1$museums,
+        art= d1$art,
+        hiking= d1$hiking,
+        gaming= d1$gaming,
+        clubbing= d1$clubbing,
+        reading= d1$reading,
+        tv= d1$tv,
+        theater= d1$theater,
+        movies= d1$movies,
+        concerts= d1$concerts,
+        music= d1$music,
+        shopping= d1$shopping,
+        yoga= d1$yoga,
+        atractive = d1$attr3_1,
+        sincere= d1$sinc3_1,
+        intelligent = d1$intel3_1,
+        fun = d1$fun3_1,
+        ambitious = d1$amb3_1
+        )
+}  
+A1 <- readBird("A1")
+
+A1@name
+
+#definir metodos
+getClass('agent1')
+slotNames('agent1')
+
+```
+
+```{r}
+setMethod('show',
+          signature = "agent1",
+          definition = function(object)
+          {
+              cat("agent1 Name: ", object@name, "\n")
+              N <- length(object@age)
+              lapply(seq_len(N), function(i)
+              {
+                  cat("agent1 #", i, "\n")
+                  cat("age: ",  object@age[[i]], "\n")
+                  cat("gender: ", object@gender[[i]], "\n")
+                  cat("race: ", object@race[[i]], "\n")
+                  cat("imprace: ", object@imprace[[i]], "\n")
+                  cat("goal: ", object@goal[[i]], "\n")
+                  cat("sports:" , object@sports[[i]], "\n")
+                  cat("tvsports:", object@tvsports[[i]], "\n")
+                  cat("exercise:", object@exercise[[i]], "\n")
+                  cat("dining:", object@dining[[i]], "\n")
+                  cat("museums:", object@museums[[i]], "\n") 
+                  cat("art:", object@art[[i]], "\n")
+                  cat("hiking:", object@hiking[[i]], "\n")
+                  cat("gaming:", object@gaming[[i]], "\n")
+                  cat("clubbing:", object@clubbing[[i]], "\n")
+                  cat("reading:", object@reading[[i]], "\n")
+                  cat("tv:", object@tv[[i]], "\n")
+                  cat("theater:", object@theater[[i]], "\n")
+                  cat("movies:", object@movies[[i]], "\n")
+                  cat("concerts:", object@concerts[[i]], "\n")
+                  cat("music:", object@music[[i]], "\n")
+                  cat("shopping:", object@shopping[[i]], "\n")
+                  cat("yoga:", object@yoga[[i]], "\n")
+                  cat("atractive:", object@atractive[[i]], "\n")
+                  cat("sincere:", object@sincere[[i]], "\n")
+                  cat("intelligent:", object@intelligent[[i]], "\n")
+                  cat("fun:", object@fun[[i]], "\n")
+                  cat("ambitious:", object@ambitious[[i]], "\n")
+              })
+          })
+A1
+```
+
